@@ -8,8 +8,8 @@ function CartaoIdeia({ ideia, aoAlternar, aoEditar, aoExcluir }) {
         <button onClick={() => aoAlternar(ideia)}>
           {ideia.completed ? 'Reabrir' : 'Marcar executada'}
         </button>
-        <button onClick={() => aoEditar(ideia)}>Edits</button>
-        <button onClick={() => aoExcluir(ideia.id)}>Exclói</button>
+        <button onClick={() => aoEditar(ideia)}>Editar</button>
+        <button onClick={() => aoExcluir(ideia.id)}>Excluir</button>
       </span>
     </li>
   )

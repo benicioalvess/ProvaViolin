@@ -4,6 +4,8 @@ import ListaIdeias from './components/ListaIdeias.jsx'
 
 const API_URL = 'https://jsonplaceholder.typicode.com/todos'
 
+const LIMITE_API = 200
+
 function App() {
   const [ideias, setIdeias] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -52,6 +54,8 @@ function App() {
     const listaAntiga = ideias
     setIdeias(ideias.filter((i) => i.id !== id))
 
+    if (id > LIMITE_API) return
+
     try {
       const resp = await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
@@ -66,7 +70,10 @@ function App() {
     const atualizada = { ...ideia, completed: !ideia.completed }
     setIdeias(ideias.map((i) => (i.id === ideia.id ? atualizada : i)))
 
+    if (ideia.id > LIMITE_API) return
+
     try {
+      setErro(null)
       const resp = await fetch(`${API_URL}/${ideia.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -83,17 +90,21 @@ function App() {
     e.preventDefault()
 
     try {
-      if (editando) {
-        // PUT
-        const dados = { ...editando, title: titulo.trim() }
+      setErro(null)
 
-        const resp = await fetch(`${API_URL}/${editando.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dados),
-        })
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-        const atualizada = await resp.json()
+      if (editando) {
+        const atual = ideias.find((i) => i.id === editando.id)
+        let atualizada = { ...atual, title: titulo.trim() }
+
+        if (atualizada.id <= LIMITE_API) {
+          const resp = await fetch(`${API_URL}/${atualizada.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(atualizada),
+          })
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+          atualizada = await resp.json()
+        }
 
         setIdeias(
           ideias.map((i) => (i.id === atualizada.id ? atualizada : i))
@@ -108,7 +119,9 @@ function App() {
           body: JSON.stringify(dados),
         })
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-        const nova = await resp.json()
+        const resposta = await resp.json()
+
+        const nova = { ...resposta, id: Date.now() }
 
         setIdeias([nova, ...ideias])
       }
